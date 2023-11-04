@@ -33,6 +33,7 @@ def test_for_data():
 
 if __name__ == '__main__':
     test_for_data()
+    test_for_nn()
 
 
 
