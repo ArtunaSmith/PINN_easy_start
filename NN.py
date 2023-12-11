@@ -1,25 +1,28 @@
-import tensorflow as tf
+import torch.nn as nn
+from collections import OrderedDict
 
 
-class MyLayer(tf.keras.layers.Layer):
-    def __init__(self, in_features, out_features, **kwargs):
-        super().__init__(**kwargs)
-        self.w = tf.Variable(tf.random.normal([in_features, out_features]), name='w')
-        self.b = tf.Variable(tf.zeros([out_features]), name='b')
+class MPL(nn.Module):
+    def __init__(self, input_size: int, hidden_size_list: list, output_size: int, act=nn.Tanh):
+        """
+        Define the MPL neutral network
+        :param input_size: the input size
+        :param hidden_size_list: the output size list, each element controls the hidden layer's size
+        """
+        super(MPL, self).__init__()
 
-    def call(self, x, *args, **kwargs):
-        # shape of x: (batch, 2)
-        x = tf.matmul(x, self.w) + self.b
-        return tf.nn.relu(x)
+        self.input_size = input_size
+        self.output_size = output_size
+        self.layers = []
+        last_size = input_size
+        for size in hidden_size_list:
+            self.layers.append(nn.Linear(last_size, size))
+            last_size = size
+            self.layers.append(act())
+        self.layers.append(nn.Linear(last_size, output_size))
 
+        self.layers = nn.Sequential(*self.layers)
 
-class MyNet(tf.keras.Model):
-    def __init__(self):
-        super().__init__()
-        self.layer1 = MyLayer(1, 4)
-        self.layer2 = MyLayer(4, 1)
+    def forward(self, input_x):
+        return self.layers(input_x)
 
-    def call(self, x, *args, **kwargs):
-        x = self.layer1(x)
-        x = self.layer2(x)
-        return x
